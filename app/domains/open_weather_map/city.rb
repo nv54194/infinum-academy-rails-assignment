@@ -17,7 +17,7 @@ module OpenWeatherMap
     end
 
     def <=>(other)
-      [other.temp_k, other.name] <=> [temp_k, name]
+      [temp_k, name] <=> [other.temp_k, other.name]
     end
   end
 end
