@@ -12,6 +12,16 @@ module OpenWeatherMap
       @temp_k = temp_k
     end
 
+    def self.parse(city)
+      new(
+        id: city['id'],
+        lat: city['coord']['lat'],
+        lon: city['coord']['lon'],
+        name: city['name'],
+        temp_k: city['main']['temp']
+      )
+    end
+
     def temp
       (temp_k - 273.15).round(2)
     end

@@ -4,23 +4,23 @@ RSpec.describe OpenWeatherMap::City do
   end
 
   describe 'attribute readers' do
-    it 'returns the correct id' do
+    it 'sets the correct id' do
       expect(city.id).to eq(3_186_886)
     end
 
-    it 'returns the correct lat' do
+    it 'sets the correct lat' do
       expect(city.lat).to eq(45.8)
     end
 
-    it 'returns the correct lon' do
+    it 'sets the correct lon' do
       expect(city.lon).to eq(15.9)
     end
 
-    it 'returns the correct name' do
+    it 'sets the correct name' do
       expect(city.name).to eq('Zagreb')
     end
 
-    it 'returns the correct temp_k' do
+    it 'sets the correct temp_k' do
       expect(city.temp_k).to eq(298.15)
     end
   end
@@ -63,6 +63,38 @@ RSpec.describe OpenWeatherMap::City do
 
     it 'receiver has same temperature as other but its name comes second alphabetically' do
       expect(same_temp_second_name <=> same_temp_first_name).to eq(1)
+    end
+  end
+
+  describe '.parse' do
+    let(:city_hash) do
+      {
+        'coord' => { 'lat' => 145.77, 'lon' => -16.92 },
+        'main' => { 'temp' => 300.15 },
+        'id' => 2_172_797,
+        'name' => 'Cairns'
+      }
+    end
+    let(:city) { described_class.parse(city_hash) }
+
+    it 'sets the correct id' do
+      expect(city.id).to eq(city_hash['id'])
+    end
+
+    it 'sets the correct latitude' do
+      expect(city.lat).to eq(city_hash['coord']['lat'])
+    end
+
+    it 'sets the correct longitude' do
+      expect(city.lon).to eq(city_hash['coord']['lon'])
+    end
+
+    it 'sets the correct name' do
+      expect(city.name).to eq(city_hash['name'])
+    end
+
+    it 'sets the correct temp_k' do
+      expect(city.temp_k).to eq(city_hash['main']['temp'])
     end
   end
 end
