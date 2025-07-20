@@ -17,8 +17,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_20_175046) do
   create_table "bookings", force: :cascade do |t|
     t.integer "no_of_seats", null: false
     t.integer "seat_price", null: false
-    t.integer "user_id", null: false
-    t.integer "flight_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "flight_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["flight_id"], name: "index_bookings_on_flight_id"
@@ -38,10 +38,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_20_175046) do
     t.integer "base_price", null: false
     t.datetime "departs_at", null: false
     t.datetime "arrives_at", null: false
-    t.integer "company_id", null: false
+    t.bigint "company_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_flights_on_company_id"
+    t.index ["name", "company_id"], name: "index_flights_on_name_and_company_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|

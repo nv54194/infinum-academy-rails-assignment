@@ -8,17 +8,18 @@
 #  base_price  :integer          not null
 #  departs_at  :datetime         not null
 #  arrives_at  :datetime         not null
-#  company_id  :integer          not null
+#  company_id  :bigint           not null
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #
 class Flight < ApplicationRecord
   belongs_to :company
   has_many :bookings, dependent: :destroy
+  has_many :users, through: :bookings
 
   validates :name,
             presence: true,
-            uniqueness: { case_sensitive: false, scope: :company_id }
+            uniqueness: { scope: :company_id, case_sensitive: false }
 
   validates :departs_at, presence: true
   validates :arrives_at, presence: true
