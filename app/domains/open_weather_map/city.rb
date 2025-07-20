@@ -15,10 +15,10 @@ module OpenWeatherMap
     def self.parse(city)
       new(
         id: city['id'],
-        lat: city['coord']['lat'],
-        lon: city['coord']['lon'],
+        lat: city.dig('coord', 'lat'),
+        lon: city.dig('coord', 'lon'),
         name: city['name'],
-        temp_k: city['main']['temp']
+        temp_k: city.dig('main', 'temp')
       )
     end
 

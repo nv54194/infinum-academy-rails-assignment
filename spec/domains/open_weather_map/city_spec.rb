@@ -45,23 +45,23 @@ RSpec.describe OpenWeatherMap::City do
       described_class.new(id: 4, lat: 0, lon: 0, name: 'Zlatibor', temp_k: 298.15)
     end
 
-    it 'receiver has lower temperature than other' do
+    it 'returns -1 when receiver has lower temperature than other' do
       expect(cooler_city <=> warmer_city).to eq(-1)
     end
 
-    it 'receiver has same temperature as other but name comes first alphabetically' do
+    it 'returns -1 when receiver has same temperature as other but name comes first alphabetically' do # rubocop:disable Layout/LineLength
       expect(same_temp_first_name <=> same_temp_second_name).to eq(-1)
     end
 
-    it 'receiver has same temperature and name as other' do
+    it 'returns 0 when receiver has same temperature and name as other' do
       expect(cooler_city <=> cooler_city).to eq(0) # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
     end
 
-    it 'receiver has higher temperature than other' do
+    it 'returns 1 when receiver has higher temperature than other' do
       expect(warmer_city <=> cooler_city).to eq(1)
     end
 
-    it 'receiver has same temperature as other but its name comes second alphabetically' do
+    it 'returns 1 when receiver has same temperature as other but name comes second alphabetically' do # rubocop:disable Layout/LineLength
       expect(same_temp_second_name <=> same_temp_first_name).to eq(1)
     end
   end
@@ -77,23 +77,11 @@ RSpec.describe OpenWeatherMap::City do
     end
     let(:city) { described_class.parse(city_hash) }
 
-    it 'sets the correct id' do
+    it 'sets all attributes correctly', :aggregate_failures do
       expect(city.id).to eq(city_hash['id'])
-    end
-
-    it 'sets the correct latitude' do
       expect(city.lat).to eq(city_hash['coord']['lat'])
-    end
-
-    it 'sets the correct longitude' do
       expect(city.lon).to eq(city_hash['coord']['lon'])
-    end
-
-    it 'sets the correct name' do
       expect(city.name).to eq(city_hash['name'])
-    end
-
-    it 'sets the correct temp_k' do
       expect(city.temp_k).to eq(city_hash['main']['temp'])
     end
   end
