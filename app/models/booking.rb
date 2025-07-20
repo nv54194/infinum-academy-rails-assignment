@@ -1,3 +1,15 @@
+# == Schema Information
+#
+# Table name: bookings
+#
+#  id          :bigint           not null, primary key
+#  no_of_seats :integer          not null
+#  seat_price  :integer          not null
+#  user_id     :integer          not null
+#  flight_id   :integer          not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#
 class Booking < ApplicationRecord
   belongs_to :user
   belongs_to :flight

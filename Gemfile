@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-
+gem 'annotate'
 gem 'httparty'
 gem 'pg'
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
