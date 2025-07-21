@@ -1,10 +1,11 @@
-class CreateCompanies < ActiveRecord::Migration[7.0]
+class CreateCompanies < ActiveRecord::Migration[7.2]
   def change
     create_table :companies do |t|
-      t.string :name, null: false, index: { unique: true }
+      t.string :name
 
       t.timestamps
     end
-    add_index :companies, 'lower(name)', unique: true, name: 'index_companies_on_lower_name'
+    add_index :companies, :name, unique: true
+    add_index :companies, 'lower(name)', unique: true
   end
 end

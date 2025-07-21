@@ -26,10 +26,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_20_175046) do
   end
 
   create_table "companies", force: :cascade do |t|
-    t.string "name", null: false
+    t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index "lower((name)::text)", name: "index_companies_on_lower_name", unique: true
+    t.index ["name"], name: "index_companies_on_name", unique: true
   end
 
   create_table "flights", force: :cascade do |t|
