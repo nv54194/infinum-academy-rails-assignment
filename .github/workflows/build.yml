@@ -1,9 +1,6 @@
 name: build
 
 on:
-  push:
-    branches:
-      - feature/hw5
   pull_request:
     branches:
       - main
