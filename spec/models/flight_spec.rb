@@ -23,18 +23,25 @@ RSpec.describe Flight, type: :model do
     it { is_expected.to have_many(:users).through(:bookings) }
   end
 
-  describe 'validations' do
-    describe 'name' do
-      it { is_expected.to validate_presence_of(:name) }
-      # it { is_expected.to validate_uniqueness_of(:name).scoped_to(:company_id).case_insensitive }
-    end
+  describe 'name validations' do
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:company_id).case_insensitive }
+  end
 
+  describe 'departs_at validations' do
     it { is_expected.to validate_presence_of(:departs_at) }
-    it { is_expected.to validate_presence_of(:arrives_at) }
+  end
 
+  describe 'arrives_at validations' do
+    it { is_expected.to validate_presence_of(:arrives_at) }
+  end
+
+  describe 'base_price validations' do
     it { is_expected.to validate_presence_of(:base_price) }
     it { is_expected.to validate_numericality_of(:base_price).is_greater_than(0) }
+  end
 
+  describe 'no_of_seats validations' do
     it { is_expected.to validate_presence_of(:no_of_seats) }
     it { is_expected.to validate_numericality_of(:no_of_seats).only_integer.is_greater_than(0) }
   end
@@ -42,18 +49,23 @@ RSpec.describe Flight, type: :model do
   describe 'validation of departs_before_arrives' do
     let(:flight) { build(:flight, departs_at: departs_at, arrives_at: arrives_at) }
 
-    let(:departs_at) { 2.days.from_now }
-    let(:arrives_at) { 1.day.from_now }
+    context 'when departs_at is after arrives_at' do
+      let(:departs_at) { 2.days.from_now }
+      let(:arrives_at) { 1.day.from_now }
 
-    it 'is not valid if departs_at is after arrives_at' do
-      expect(flight).not_to be_valid
-      expect(flight.errors[:departs_at]).to include('should be before arrives_at')
+      it 'is not valid' do
+        expect(flight).not_to be_valid
+        expect(flight.errors[:departs_at]).to include('should be before arrives_at')
+      end
     end
 
-    it 'is valid if departs_at is before arrives_at' do
-      flight.departs_at = 1.day.from_now
-      flight.arrives_at = 2.days.from_now
-      expect(flight).to be_valid
+    context 'when departs_at is before arrives_at' do
+      let(:departs_at) { 1.day.from_now }
+      let(:arrives_at) { 2.days.from_now }
+
+      it 'is valid' do
+        expect(flight).to be_valid
+      end
     end
   end
 end

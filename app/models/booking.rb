@@ -20,7 +20,7 @@ class Booking < ApplicationRecord
 
   validates :no_of_seats,
             presence: true,
-            numericality: { greater_than: 0 }
+            numericality: { only_integer: true, greater_than: 0 }
 
   validate :flight_not_in_past
 
