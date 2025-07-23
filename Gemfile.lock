@@ -82,6 +82,7 @@ GEM
     benchmark (0.4.1)
     bigdecimal (3.2.2)
     bindex (0.8.1)
+    blueprinter (1.1.2)
     brakeman (7.1.0)
       racc
     builder (3.3.0)
@@ -360,6 +361,7 @@ PLATFORMS
 
 DEPENDENCIES
   annotate
+  blueprinter
   brakeman
   capybara
   debug
