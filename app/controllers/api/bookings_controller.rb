@@ -7,36 +7,39 @@ module Api
     end
 
     def show
-      render json: BookingSerializer.render(@booking, root: :booking), status: :ok
+      render json: BookingSerializer.render(booking, root: :booking), status: :ok
     end
 
     def create
-      booking = Booking.new(booking_params)
-      if booking.save
-        render json: BookingSerializer.render(booking, root: :booking), status: :created
+      new_booking = Booking.new(booking_params)
+      if new_booking.save
+        render json: BookingSerializer.render(new_booking, root: :booking), status: :created
+      else
+        render_bad_request(new_booking.errors.full_messages)
+      end
+    end
+
+    def update
+      if booking.update(booking_params)
+        render json: BookingSerializer.render(booking, root: :booking), status: :ok
       else
         render_bad_request(booking.errors.full_messages)
       end
     end
 
-    def update
-      if @booking.update(booking_params)
-        render json: BookingSerializer.render(@booking, root: :booking), status: :ok
-      else
-        render_bad_request(@booking.errors.full_messages)
-      end
-    end
-
     def destroy
-      @booking.destroy
+      booking.destroy
       head :no_content
     end
 
     private
 
     def set_booking
-      @booking = Booking.find_by(id: params[:id])
-      render_not_found unless @booking
+      render_not_found unless booking
+    end
+
+    def booking
+      @booking ||= Booking.find_by(id: params[:id])
     end
 
     def booking_params

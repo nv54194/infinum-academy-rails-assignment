@@ -10,6 +10,7 @@ class FlightSerializer < Blueprinter::Base
          :updated_at
 
   association :company, blueprint: CompanySerializer
-  association :bookings, blueprint: BookingSerializer
-  association :users, blueprint: UserSerializer
+  # posebni viewovi za razlicite uloge?
+  # association :bookings, blueprint: BookingSerializer
+  # association :users, blueprint: UserSerializer
 end
