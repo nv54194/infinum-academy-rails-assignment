@@ -1,5 +1,4 @@
 source 'https://rubygems.org'
-
 gem 'httparty'
 gem 'pg'
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
@@ -35,12 +34,15 @@ gem 'tzinfo-data', platforms: %i[windows jruby]
 # gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  gem 'annotate'
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'debug', platforms: %i[mri windows], require: 'debug/prelude'
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem 'brakeman', require: false
 
+  gem 'factory_bot_rails'
   gem 'overcommit', require: false
   gem 'rspec-rails'
   gem 'rubocop', require: false
@@ -48,6 +50,7 @@ group :development, :test do
   gem 'rubocop-rspec', require: false
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem 'rubocop-rails-omakase', require: false
+  gem 'shoulda-matchers'
 end
 
 group :development do
