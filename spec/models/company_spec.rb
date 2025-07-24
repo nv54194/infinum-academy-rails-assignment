@@ -1,4 +1,12 @@
-require 'rails_helper'
+# == Schema Information
+#
+# Table name: companies
+#
+#  id         :bigint           not null, primary key
+#  name       :string           not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
 
 RSpec.describe Company, type: :model do
   subject { build(:company) }

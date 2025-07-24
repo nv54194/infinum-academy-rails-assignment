@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 RSpec.describe 'Companies API', type: :request do
   include TestHelpers::JsonResponse
 
