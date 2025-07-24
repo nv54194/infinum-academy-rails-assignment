@@ -15,7 +15,7 @@ module Api
       if new_user.save
         render json: UserSerializer.render(new_user, root: :user), status: :created
       else
-        render_bad_request(new_user.errors.full_messages)
+        render_bad_request(new_user.errors.messages)
       end
     end
 
@@ -23,7 +23,7 @@ module Api
       if user.update(user_params)
         render json: UserSerializer.render(user, root: :user), status: :ok
       else
-        render_bad_request(user.errors.full_messages)
+        render_bad_request(user.errors.messages)
       end
     end
 

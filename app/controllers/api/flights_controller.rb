@@ -15,7 +15,7 @@ module Api
       if new_flight.save
         render json: FlightSerializer.render(new_flight, root: :flight), status: :created
       else
-        render_bad_request(new_flight.errors.full_messages)
+        render_bad_request(new_flight.errors.messages)
       end
     end
 
@@ -23,7 +23,7 @@ module Api
       if flight.update(flight_params)
         render json: FlightSerializer.render(flight, root: :flight), status: :ok
       else
-        render_bad_request(flight.errors.full_messages)
+        render_bad_request(flight.errors.messages)
       end
     end
 
@@ -43,7 +43,8 @@ module Api
     end
 
     def flight_params
-      params.require(:flight).permit(:name, :no_of_seats, :base_price, :departs_at, :arrives_at)
+      params.require(:flight).permit(:name, :no_of_seats, :base_price, :departs_at, :arrives_at,
+                                     :company_id)
     end
   end
 end

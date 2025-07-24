@@ -15,7 +15,7 @@ module Api
       if new_booking.save
         render json: BookingSerializer.render(new_booking, root: :booking), status: :created
       else
-        render_bad_request(new_booking.errors.full_messages)
+        render_bad_request(new_booking.errors.messages)
       end
     end
 
@@ -23,7 +23,7 @@ module Api
       if booking.update(booking_params)
         render json: BookingSerializer.render(booking, root: :booking), status: :ok
       else
-        render_bad_request(booking.errors.full_messages)
+        render_bad_request(booking.errors.messages)
       end
     end
 
