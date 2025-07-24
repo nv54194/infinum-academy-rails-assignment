@@ -102,7 +102,7 @@ jobs:
       - name: Run lecturer specs
         shell: bash
         env:
-          BRANCH_NAME: ${{ github.head_ref }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
           cp -R rails-lecturer-specs/behaviour .
           rm -rf rails-lecturer-specs
