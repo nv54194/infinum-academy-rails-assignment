@@ -11,6 +11,13 @@ RSpec.describe 'Companies API', type: :request do
       expect(response).to have_http_status(:ok)
       expect(json_body['companies'].size).to eq(3)
     end
+
+    it 'returns companies without root when X_API_SERIALIZER_ROOT header is set to 0' do
+      get '/api/companies', headers: api_headers(root: 0)
+      expect(response).to have_http_status(:ok)
+      expect(json_body).to be_an(Array)
+      expect(json_body.size).to eq(3)
+    end
   end
 
   describe 'POST /api/companies' do
@@ -46,6 +53,13 @@ RSpec.describe 'Companies API', type: :request do
       get "/api/companies/#{company.id}", headers: api_headers
       expect(response).to have_http_status(:ok)
       expect(json_body['company']).to include('name' => company.name)
+    end
+
+    it 'returns jsonapi format when X_API_SERIALIZER header is set to jsonapi' do
+      get "/api/companies/#{company.id}", headers: api_headers(serializer: 'jsonapi')
+      expect(response).to have_http_status(:ok)
+      expect(json_body['data']).to have_key('attributes')
+      expect(json_body['data']['attributes']['name']).to eq(company.name)
     end
   end
 

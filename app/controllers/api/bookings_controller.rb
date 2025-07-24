@@ -3,11 +3,13 @@ module Api
     before_action :set_booking, only: [:show, :update, :destroy]
 
     def index
-      render json: BookingSerializer.render(Booking.all, root: :bookings), status: :ok
+      # render json: BookingSerializer.render(Booking.all, root: :bookings), status: :ok
+      render json: serialize(Booking.all, root: :bookings)
     end
 
     def show
-      render json: BookingSerializer.render(booking, root: :booking), status: :ok
+      # render json: BookingSerializer.render(booking, root: :booking), status: :ok
+      render json: serialize(booking, root: :booking)
     end
 
     def create

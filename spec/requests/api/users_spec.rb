@@ -11,6 +11,13 @@ RSpec.describe 'Users API', type: :request do
       expect(response).to have_http_status(:ok)
       expect(json_body['users'].size).to eq(3)
     end
+
+    it 'returns users without root when X_API_SERIALIZER header is set to 0' do
+      get '/api/users', headers: api_headers(root: 0)
+      expect(response).to have_http_status(:ok)
+      expect(json_body).to be_an(Array)
+      expect(json_body.size).to eq(3)
+    end
   end
 
   describe 'POST /api/users' do
@@ -72,6 +79,13 @@ RSpec.describe 'Users API', type: :request do
         'last_name' => user.last_name,
         'email' => user.email
       )
+    end
+
+    it 'returns jsonapi format when X_API_SERIALIZER_ROOT header is set to jsonapi' do
+      get "/api/users/#{user.id}", headers: api_headers(serializer: 'jsonapi')
+      expect(response).to have_http_status(:ok)
+      expect(json_body['data']).to have_key('attributes')
+      expect(json_body['data']['attributes']['first_name']).to eq(user.first_name)
     end
   end
 

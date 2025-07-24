@@ -3,12 +3,13 @@ module Api
     before_action :set_company, only: [:show, :update, :destroy]
 
     def index
-      companies = Company.all
-      render json: CompanySerializer.render(companies, root: :companies), status: :ok
+      # render json: CompanySerializer.render(Company.all, root: :companies), status: :ok
+      render json: serialize(Company.all, root: :companies)
     end
 
     def show
-      render json: CompanySerializer.render(company, root: :company), status: :ok
+      # render json: CompanySerializer.render(company, root: :company), status: :ok
+      render json: serialize(company, root: :company)
     end
 
     def create

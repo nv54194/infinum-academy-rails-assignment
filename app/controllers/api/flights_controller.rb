@@ -3,11 +3,13 @@ module Api
     before_action :set_flight, only: [:show, :update, :destroy]
 
     def index
-      render json: FlightSerializer.render(Flight.all, root: :flights), status: :ok
+      # render json: FlightSerializer.render(Flight.all, root: :flights), status: :ok
+      render json: serialize(Flight.all, root: :flights)
     end
 
     def show
-      render json: FlightSerializer.render(flight, root: :flight), status: :ok
+      # render json: FlightSerializer.render(flight, root: :flight), status: :ok
+      render json: serialize(flight, root: :flight)
     end
 
     def create

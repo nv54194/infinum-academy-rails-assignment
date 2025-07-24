@@ -3,11 +3,13 @@ module Api
     before_action :set_user, only: [:show, :update, :destroy]
 
     def index
-      render json: UserSerializer.render(User.all, root: :users), status: :ok
+      # render json: UserSerializer.render(User.all, root: :users), status: :ok
+      render json: serialize(User.all, root: :users)
     end
 
     def show
-      render json: UserSerializer.render(user, root: :user), status: :ok
+      # render json: UserSerializer.render(user, root: :user), status: :ok
+      render json: serialize(user, root: :user)
     end
 
     def create

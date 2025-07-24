@@ -11,6 +11,13 @@ RSpec.describe 'Flights API', type: :request do
       expect(response).to have_http_status(:ok)
       expect(json_body['flights'].size).to eq(3)
     end
+
+    it 'returns flights without root when X_API_SERIALIZER_ROOT header is set to 0' do
+      get '/api/flights', headers: api_headers(root: 0)
+      expect(response).to have_http_status(:ok)
+      expect(json_body).to be_an(Array)
+      expect(json_body.size).to eq(3)
+    end
   end
 
   describe 'POST /api/flights' do
@@ -85,6 +92,15 @@ RSpec.describe 'Flights API', type: :request do
         'base_price' => flight.base_price
       )
       expect(json_body['flight']['company']).to include('id' => company.id)
+    end
+
+    it 'returns jsonapi format when X_API_SERIALIZER header is set to jsonapi' do
+      get "/api/flights/#{flight.id}", headers: api_headers(serializer: 'jsonapi')
+      expect(response).to have_http_status(:ok)
+      expect(json_body['data']).to have_key('attributes')
+      expect(json_body['data']['attributes']['name']).to eq(flight.name)
+      expect(json_body['data']['attributes']['no_of_seats']).to eq(flight.no_of_seats)
+      expect(json_body['data']['attributes']['base_price']).to eq(flight.base_price)
     end
   end
 
