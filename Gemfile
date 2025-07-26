@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
+gem 'blueprinter'
 gem 'httparty'
+gem 'jsonapi-serializer'
 gem 'pg'
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem 'rails', '~> 7.2.2', '>= 7.2.2.1'
