@@ -11,6 +11,7 @@
 #
 class User < ApplicationRecord
   has_secure_password
+  has_secure_token
 
   has_many :bookings, dependent: :destroy
   has_many :flights, through: :bookings

@@ -3,6 +3,11 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def current_user
+    token = request.headers['Authorization']
+    User.find_by(token: token)
+  end
+
   def render_not_found
     render json: { error: 'Not found' }, status: :not_found
   end

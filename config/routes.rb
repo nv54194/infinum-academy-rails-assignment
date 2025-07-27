@@ -4,5 +4,6 @@ Rails.application.routes.draw do
     resources :companies, except: [:new, :edit]
     resources :flights, except: [:new, :edit]
     resources :bookings, except: [:new, :edit]
+    resources :session, only: [:create, :destroy]
   end
 end
