@@ -138,7 +138,6 @@ RSpec.describe 'Users API', type: :request do
       let(:password_params) do
         {
           user: {
-            current_password: 'old_password',
             password: 'new_secure_password'
           }
         }
@@ -157,7 +156,6 @@ RSpec.describe 'Users API', type: :request do
       let(:password_params) do
         {
           user: {
-            current_password: 'old_password',
             password: ''
           }
         }
@@ -175,7 +173,6 @@ RSpec.describe 'Users API', type: :request do
       let(:password_params) do
         {
           user: {
-            current_password: 'old_password',
             password: nil
           }
         }
