@@ -23,9 +23,9 @@ RSpec.describe 'Users API', type: :request do
       let(:valid_params) do
         {
           user: {
-            first_name: 'Ivan',
-            last_name: 'Horvat',
-            email: 'ivan@example.com',
+            first_name: 'Nikola',
+            last_name: 'Tesla',
+            email: 'nikola@tesla.com',
             password: 'password'
           }
         }
@@ -50,7 +50,8 @@ RSpec.describe 'Users API', type: :request do
         {
           user: {
             first_name: '',
-            email: ''
+            email: '',
+            password: ''
           }
         }
       end
@@ -66,7 +67,7 @@ RSpec.describe 'Users API', type: :request do
 
   describe 'GET /api/users/:id' do
     let!(:user) do
-      create(:user, first_name: 'Nikola', last_name: 'Tesla', email: 'nikola@example.com')
+      create(:user)
     end
 
     it 'returns 200 OK and correct attributes' do
@@ -89,9 +90,7 @@ RSpec.describe 'Users API', type: :request do
   end
 
   describe 'PATCH /api/users/:id' do
-    let!(:user) do
-      create(:user, first_name: 'Petar', last_name: 'Perić', email: 'petar@example.com')
-    end
+    let!(:user) { create(:user) }
 
     context 'with valid params' do
       let(:update_params) do
@@ -132,6 +131,61 @@ RSpec.describe 'Users API', type: :request do
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('first_name', 'email')
+      end
+    end
+
+    context 'when new_password is provided correctly' do
+      let(:password_params) do
+        {
+          user: {
+            current_password: 'old_password',
+            password: 'new_secure_password'
+          }
+        }
+      end
+
+      it 'returns 200 OK and changes the password' do
+        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+
+        expect(response).to have_http_status(:ok)
+        user.reload
+        expect(user.authenticate('new_secure_password')).to be_truthy
+      end
+    end
+
+    context 'when new password is blank' do
+      let(:password_params) do
+        {
+          user: {
+            current_password: 'old_password',
+            password: ''
+          }
+        }
+      end
+
+      it 'returns 400 Bad Request and error for password' do
+        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json_body['errors']).to include('password')
+      end
+    end
+
+    context 'when new password is nil' do
+      let(:password_params) do
+        {
+          user: {
+            current_password: 'old_password',
+            password: nil
+          }
+        }
+      end
+
+      it 'returns 400 Bad Request and error for password' do
+        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json_body['errors']).to include('password')
       end
     end
   end
