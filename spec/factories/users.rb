@@ -14,5 +14,6 @@ FactoryBot.define do
     first_name { 'Test' }
     last_name  { 'User' }
     sequence(:email) { |n| "test#{n}@example.com" }
+    password { 'password' }
   end
 end

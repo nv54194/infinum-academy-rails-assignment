@@ -25,7 +25,8 @@ RSpec.describe 'Users API', type: :request do
           user: {
             first_name: 'Ivan',
             last_name: 'Horvat',
-            email: 'ivan@example.com'
+            email: 'ivan@example.com',
+            password: 'password'
           }
         }
       end
