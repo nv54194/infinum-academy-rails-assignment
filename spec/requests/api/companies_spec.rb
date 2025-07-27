@@ -1,17 +1,19 @@
 RSpec.describe 'Companies API', type: :request do
   include TestHelpers::JsonResponse
 
+  let!(:admin) { create(:user, role: :admin) }
+
   describe 'GET /api/companies' do
     let!(:companies) { create_list(:company, 3) } # rubocop:disable RSpec/LetSetup
 
     it 'returns 200 OK and correct number of records' do
-      get '/api/companies', headers: api_headers
+      get '/api/companies', headers: api_headers(token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['companies'].size).to eq(3)
     end
 
     it 'returns companies without root when X_API_SERIALIZER_ROOT header is set to 0' do
-      get '/api/companies', headers: api_headers(root: 0)
+      get '/api/companies', headers: api_headers(root: 0, token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body).to be_an(Array)
       expect(json_body.size).to eq(3)
@@ -24,7 +26,8 @@ RSpec.describe 'Companies API', type: :request do
 
       it 'returns 201 Created and correct attributes' do
         expect do
-          post '/api/companies', params: valid_params.to_json, headers: api_headers
+          post '/api/companies', params: valid_params.to_json,
+                                 headers: api_headers(token: admin.token)
         end.to change(Company, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -36,7 +39,8 @@ RSpec.describe 'Companies API', type: :request do
       let(:invalid_params) { { company: { name: '' } } }
 
       it 'returns 400 Bad Request and error keys' do
-        post '/api/companies', params: invalid_params.to_json, headers: api_headers
+        post '/api/companies', params: invalid_params.to_json,
+                               headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name')
@@ -68,7 +72,8 @@ RSpec.describe 'Companies API', type: :request do
       let(:update_params) { { company: { name: 'Updated Name' } } }
 
       it 'returns 200 OK and persists changes' do
-        patch "/api/companies/#{company.id}", params: update_params.to_json, headers: api_headers
+        patch "/api/companies/#{company.id}", params: update_params.to_json,
+                                              headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:ok)
         expect(json_body['company']).to include('name' => update_params[:company][:name])
@@ -81,7 +86,7 @@ RSpec.describe 'Companies API', type: :request do
 
       it 'returns 400 Bad Request and error keys' do
         patch "/api/companies/#{company.id}", params: invalid_update_params.to_json,
-                                              headers: api_headers
+                                              headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name')
@@ -94,7 +99,7 @@ RSpec.describe 'Companies API', type: :request do
 
     it 'returns 204 No Content and removes the company' do
       expect do
-        delete "/api/companies/#{company.id}", headers: api_headers
+        delete "/api/companies/#{company.id}", headers: api_headers(token: admin.token)
       end.to change(Company, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)

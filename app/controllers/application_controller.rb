@@ -1,11 +1,23 @@
 class ApplicationController < ActionController::Base
+  include Pundit::Authorization
+  before_action :authenticate_user
+
+  rescue_from Pundit::NotAuthorizedError do
+    render json: { errors: { authorization: ['not allowed'] } }, status: :forbidden
+  end
+
   skip_before_action :verify_authenticity_token
 
   private
 
-  def current_user
+  attr_reader :current_user
+
+  def authenticate_user
     token = request.headers['Authorization']
-    User.find_by(token: token)
+    @current_user = User.find_by(token: token)
+    return if @current_user
+
+    render json: { errors: { token: ['is invalid'] } }, status: :unauthorized
   end
 
   def render_not_found

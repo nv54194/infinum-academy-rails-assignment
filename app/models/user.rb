@@ -27,6 +27,10 @@ class User < ApplicationRecord
             presence: true,
             length: { minimum: 2 }
 
+  def admin?
+    role == 'admin'
+  end
+
   def password=(unencrypted_password)
     @password_was_blank = !unencrypted_password.nil? && unencrypted_password.empty?
     super

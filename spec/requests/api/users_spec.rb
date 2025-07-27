@@ -2,19 +2,20 @@ RSpec.describe 'Users API', type: :request do
   include TestHelpers::JsonResponse
 
   describe 'GET /api/users' do
+    let!(:admin) { create(:user, role: :admin) }
     let!(:users) { create_list(:user, 3) } # rubocop:disable RSpec/LetSetup
 
     it 'returns 200 OK and correct number of records' do
-      get '/api/users', headers: api_headers
+      get '/api/users', headers: api_headers(token: admin.token)
       expect(response).to have_http_status(:ok)
-      expect(json_body['users'].size).to eq(3)
+      expect(json_body['users'].size).to eq(4)
     end
 
     it 'returns users without root when X_API_SERIALIZER header is set to 0' do
-      get '/api/users', headers: api_headers(root: 0)
+      get '/api/users', headers: api_headers(root: 0, token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body).to be_an(Array)
-      expect(json_body.size).to eq(3)
+      expect(json_body.size).to eq(4)
     end
   end
 
@@ -23,9 +24,9 @@ RSpec.describe 'Users API', type: :request do
       let(:valid_params) do
         {
           user: {
-            first_name: 'Nikola',
-            last_name: 'Tesla',
-            email: 'nikola@tesla.com',
+            first_name: 'Example',
+            last_name: 'User',
+            email: 'example.user@example.com',
             password: 'password'
           }
         }
@@ -67,11 +68,11 @@ RSpec.describe 'Users API', type: :request do
 
   describe 'GET /api/users/:id' do
     let!(:user) do
-      create(:user)
+      create(:user, first_name: 'Example', last_name: 'User', email: 'example.user@example.com')
     end
 
     it 'returns 200 OK and correct attributes' do
-      get "/api/users/#{user.id}", headers: api_headers
+      get "/api/users/#{user.id}", headers: api_headers(token: user.token)
 
       expect(response).to have_http_status(:ok)
       expect(json_body['user']).to include(
@@ -82,7 +83,7 @@ RSpec.describe 'Users API', type: :request do
     end
 
     it 'returns jsonapi format when X_API_SERIALIZER_ROOT header is set to jsonapi' do
-      get "/api/users/#{user.id}", headers: api_headers(serializer: 'jsonapi')
+      get "/api/users/#{user.id}", headers: api_headers(serializer: 'jsonapi', token: user.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['data']).to have_key('attributes')
       expect(json_body['data']['attributes']['first_name']).to eq(user.first_name)
@@ -90,20 +91,23 @@ RSpec.describe 'Users API', type: :request do
   end
 
   describe 'PATCH /api/users/:id' do
-    let!(:user) { create(:user) }
+    let!(:user) do
+      create(:user, first_name: 'Example', last_name: 'User', email: 'example.user@example.com')
+    end
 
     context 'with valid params' do
       let(:update_params) do
         {
           user: {
-            first_name: 'Nikola',
-            last_name: 'Tesla'
+            first_name: 'Updated',
+            last_name: 'Example'
           }
         }
       end
 
       it 'returns 200 OK and persists changes' do
-        patch "/api/users/#{user.id}", params: update_params.to_json, headers: api_headers
+        patch "/api/users/#{user.id}", params: update_params.to_json,
+                                       headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:ok)
         expect(json_body['user']).to include(
@@ -127,7 +131,8 @@ RSpec.describe 'Users API', type: :request do
       end
 
       it 'returns 400 Bad Request and error keys' do
-        patch "/api/users/#{user.id}", params: invalid_update_params.to_json, headers: api_headers
+        patch "/api/users/#{user.id}", params: invalid_update_params.to_json,
+                                       headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('first_name', 'email')
@@ -144,7 +149,8 @@ RSpec.describe 'Users API', type: :request do
       end
 
       it 'returns 200 OK and changes the password' do
-        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+        patch "/api/users/#{user.id}", params: password_params.to_json,
+                                       headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:ok)
         user.reload
@@ -162,7 +168,8 @@ RSpec.describe 'Users API', type: :request do
       end
 
       it 'returns 400 Bad Request and error for password' do
-        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+        patch "/api/users/#{user.id}", params: password_params.to_json,
+                                       headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('password')
@@ -179,7 +186,8 @@ RSpec.describe 'Users API', type: :request do
       end
 
       it 'returns 400 Bad Request and error for password' do
-        patch "/api/users/#{user.id}", params: password_params.to_json, headers: api_headers
+        patch "/api/users/#{user.id}", params: password_params.to_json,
+                                       headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('password')
@@ -188,11 +196,13 @@ RSpec.describe 'Users API', type: :request do
   end
 
   describe 'DELETE /api/users/:id' do
-    let!(:user) { create(:user) }
+    let!(:user) do
+      create(:user, first_name: 'Example', last_name: 'User', email: 'example.user@example.com')
+    end
 
     it 'returns 204 No Content and removes the user' do
       expect do
-        delete "/api/users/#{user.id}", headers: api_headers
+        delete "/api/users/#{user.id}", headers: api_headers(token: user.token)
       end.to change(User, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)

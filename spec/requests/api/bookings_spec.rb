@@ -2,16 +2,17 @@ RSpec.describe 'Bookings API', type: :request do
   include TestHelpers::JsonResponse
 
   describe 'GET /api/bookings' do
-    let!(:bookings) { create_list(:booking, 3) } # rubocop:disable RSpec/LetSetup
+    let!(:admin) { create(:user, role: :admin) }
+    let!(:bookings) { create_list(:booking, 3) }
 
     it 'returns 200 OK and correct number of records' do
-      get '/api/bookings', headers: api_headers
+      get '/api/bookings', headers: api_headers(token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['bookings'].size).to eq(3)
     end
 
     it 'returns bookings without root when X_API_SERIALIZER_ROOT header is set to 0' do
-      get '/api/bookings', headers: api_headers(root: 0)
+      get '/api/bookings', headers: api_headers(root: 0, token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body).to be_an(Array)
       expect(json_body.size).to eq(3)
@@ -19,8 +20,8 @@ RSpec.describe 'Bookings API', type: :request do
   end
 
   describe 'POST /api/bookings' do
-    let!(:user)   { create(:user) }
     let!(:flight) { create(:flight) }
+    let!(:user)   { create(:user) }
 
     context 'with valid params' do
       let(:valid_params) do
@@ -36,7 +37,8 @@ RSpec.describe 'Bookings API', type: :request do
 
       it 'returns 201 Created and correct attributes' do
         expect do
-          post '/api/bookings', params: valid_params.to_json, headers: api_headers
+          post '/api/bookings', params: valid_params.to_json,
+                                headers: api_headers(token: user.token)
         end.to change(Booking, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -55,17 +57,17 @@ RSpec.describe 'Bookings API', type: :request do
           booking: {
             seat_price: nil,
             no_of_seats: nil,
-            user_id: nil,
             flight_id: nil
           }
         }
       end
 
       it 'returns 400 Bad Request and error keys' do
-        post '/api/bookings', params: invalid_params.to_json, headers: api_headers
+        post '/api/bookings', params: invalid_params.to_json,
+                              headers: api_headers(token: user.token)
 
         expect(response).to have_http_status(:bad_request)
-        expect(json_body['errors']).to include('seat_price', 'no_of_seats', 'user', 'flight')
+        expect(json_body['errors']).to include('seat_price', 'no_of_seats', 'flight')
       end
     end
   end
@@ -74,7 +76,7 @@ RSpec.describe 'Bookings API', type: :request do
     let!(:booking) { create(:booking) }
 
     it 'returns 200 OK and correct attributes' do
-      get "/api/bookings/#{booking.id}", headers: api_headers
+      get "/api/bookings/#{booking.id}", headers: api_headers(token: booking.user.token)
 
       expect(response).to have_http_status(:ok)
       expect(json_body['booking']).to include(
@@ -86,7 +88,8 @@ RSpec.describe 'Bookings API', type: :request do
     end
 
     it 'returns jsonapi format when X_API_SERIALIZER header is set to jsonapi' do
-      get "/api/bookings/#{booking.id}", headers: api_headers(serializer: 'jsonapi')
+      get "/api/bookings/#{booking.id}",
+          headers: api_headers(serializer: 'jsonapi', token: booking.user.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['data']).to have_key('attributes')
       expect(json_body['data']['attributes']['seat_price']).to eq(booking.seat_price)
@@ -108,7 +111,8 @@ RSpec.describe 'Bookings API', type: :request do
       end
 
       it 'returns 200 OK and persists changes' do
-        patch "/api/bookings/#{booking.id}", params: update_params.to_json, headers: api_headers
+        patch "/api/bookings/#{booking.id}", params: update_params.to_json,
+                                             headers: api_headers(token: booking.user.token)
 
         expect(response).to have_http_status(:ok)
         expect(json_body['booking']).to include(
@@ -133,7 +137,7 @@ RSpec.describe 'Bookings API', type: :request do
 
       it 'returns 400 Bad Request and error keys' do
         patch "/api/bookings/#{booking.id}", params: invalid_update_params.to_json,
-                                             headers: api_headers
+                                             headers: api_headers(token: booking.user.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('seat_price', 'no_of_seats')
@@ -146,7 +150,7 @@ RSpec.describe 'Bookings API', type: :request do
 
     it 'returns 204 No Content and removes the booking' do
       expect do
-        delete "/api/bookings/#{booking.id}", headers: api_headers
+        delete "/api/bookings/#{booking.id}", headers: api_headers(token: booking.user.token)
       end.to change(Booking, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)

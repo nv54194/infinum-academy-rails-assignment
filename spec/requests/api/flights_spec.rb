@@ -1,17 +1,19 @@
 RSpec.describe 'Flights API', type: :request do
   include TestHelpers::JsonResponse
 
+  let!(:admin) { create(:user, role: :admin) }
+
   describe 'GET /api/flights' do
     let!(:flights) { create_list(:flight, 3) } # rubocop:disable RSpec/LetSetup
 
     it 'returns 200 OK and correct number of records' do
-      get '/api/flights', headers: api_headers
+      get '/api/flights', headers: api_headers(token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['flights'].size).to eq(3)
     end
 
     it 'returns flights without root when X_API_SERIALIZER_ROOT header is set to 0' do
-      get '/api/flights', headers: api_headers(root: 0)
+      get '/api/flights', headers: api_headers(root: 0, token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body).to be_an(Array)
       expect(json_body.size).to eq(3)
@@ -37,7 +39,8 @@ RSpec.describe 'Flights API', type: :request do
 
       it 'returns 201 Created and correct attributes' do
         expect do
-          post '/api/flights', params: valid_params.to_json, headers: api_headers
+          post '/api/flights', params: valid_params.to_json,
+                               headers: api_headers(token: admin.token)
         end.to change(Flight, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -65,7 +68,8 @@ RSpec.describe 'Flights API', type: :request do
       end
 
       it 'returns 400 Bad Request and error keys' do
-        post '/api/flights', params: invalid_params.to_json, headers: api_headers
+        post '/api/flights', params: invalid_params.to_json,
+                             headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name', 'no_of_seats', 'base_price', 'departs_at',
@@ -81,7 +85,7 @@ RSpec.describe 'Flights API', type: :request do
     end
 
     it 'returns 200 OK and correct attributes' do
-      get "/api/flights/#{flight.id}", headers: api_headers
+      get "/api/flights/#{flight.id}", headers: api_headers(token: admin.token)
 
       expect(response).to have_http_status(:ok)
       expect(json_body['flight']).to include(
@@ -93,7 +97,8 @@ RSpec.describe 'Flights API', type: :request do
     end
 
     it 'returns jsonapi format when X_API_SERIALIZER header is set to jsonapi' do
-      get "/api/flights/#{flight.id}", headers: api_headers(serializer: 'jsonapi')
+      get "/api/flights/#{flight.id}",
+          headers: api_headers(serializer: 'jsonapi', token: admin.token)
       expect(response).to have_http_status(:ok)
       expect(json_body['data']).to have_key('attributes')
       expect(json_body['data']['attributes']['name']).to eq(flight.name)
@@ -121,7 +126,8 @@ RSpec.describe 'Flights API', type: :request do
       end
 
       it 'returns 200 OK and persists changes' do # rubocop:disable RSpec/ExampleLength
-        patch "/api/flights/#{flight.id}", params: update_params.to_json, headers: api_headers
+        patch "/api/flights/#{flight.id}", params: update_params.to_json,
+                                           headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:ok)
         expect(json_body['flight']).to include(
@@ -152,7 +158,7 @@ RSpec.describe 'Flights API', type: :request do
 
       it 'returns 400 Bad Request and error keys' do
         patch "/api/flights/#{flight.id}", params: invalid_update_params.to_json,
-                                           headers: api_headers
+                                           headers: api_headers(token: admin.token)
 
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name', 'no_of_seats', 'base_price', 'company')
@@ -166,7 +172,7 @@ RSpec.describe 'Flights API', type: :request do
 
     it 'returns 204 No Content and removes the flight' do
       expect do
-        delete "/api/flights/#{flight.id}", headers: api_headers
+        delete "/api/flights/#{flight.id}", headers: api_headers(token: admin.token)
       end.to change(Flight, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)

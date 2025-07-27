@@ -1,14 +1,15 @@
 module Api
   class UsersController < ApplicationController
+    skip_before_action :authenticate_user, only: [:create]
     before_action :set_user, only: [:show, :update, :destroy]
 
     def index
-      # render json: UserSerializer.render(User.all, root: :users), status: :ok
+      authorize User
       render json: serialize(User.all, root: :users)
     end
 
     def show
-      # render json: UserSerializer.render(user, root: :user), status: :ok
+      authorize user
       render json: serialize(user, root: :user)
     end
 
@@ -22,6 +23,7 @@ module Api
     end
 
     def update
+      authorize user
       if user.update(user_params)
         render json: UserSerializer.render(user, root: :user), status: :ok
       else
@@ -30,6 +32,7 @@ module Api
     end
 
     def destroy
+      authorize user
       user.destroy
       head :no_content
     end
@@ -45,7 +48,11 @@ module Api
     end
 
     def user_params
-      params.require(:user).permit(:first_name, :last_name, :email, :password)
+      if current_user&.admin?
+        params.require(:user).permit(:first_name, :last_name, :email, :password, :role)
+      else
+        params.require(:user).permit(:first_name, :last_name, :email, :password)
+      end
     end
   end
 end
