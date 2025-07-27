@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user
 
   rescue_from Pundit::NotAuthorizedError do
-    render json: { errors: { authorization: ['not allowed'] } }, status: :forbidden
+    render json: { errors: { resource: ['is forbidden'] } }, status: :forbidden
   end
 
   skip_before_action :verify_authenticity_token
