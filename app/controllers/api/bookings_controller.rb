@@ -13,7 +13,7 @@ module Api
     end
 
     def create
-      new_booking = current_user.bookings.build(booking_params)
+      new_booking = build_booking
       authorize new_booking
       if new_booking.save
         render json: BookingSerializer.render(new_booking, root: :booking), status: :created
@@ -24,7 +24,9 @@ module Api
 
     def update
       authorize booking
-      if booking.update(booking_params)
+      permitted_params = booking_params
+      permitted_params = permitted_params.except(:user_id) unless current_user.admin?
+      if booking.update(permitted_params)
         render json: BookingSerializer.render(booking, root: :booking), status: :ok
       else
         render_bad_request(booking.errors.messages)
@@ -40,18 +42,24 @@ module Api
     private
 
     def set_booking
-      @booking = Booking.find_by(id: params[:id])
-      render_not_found unless @booking
+      render_not_found unless booking
     end
 
-    attr_reader :booking
+    def booking
+      @booking ||= Booking.find_by(id: params[:id])
+    end
+
+    def build_booking
+      if current_user.admin? && booking_params[:user_id]
+        user = User.find(booking_params[:user_id])
+        user.bookings.build(booking_params.except(:user_id))
+      else
+        current_user.bookings.build(booking_params)
+      end
+    end
 
     def booking_params
-      if current_user.admin?
-        params.require(:booking).permit(:no_of_seats, :seat_price, :flight_id, :user_id)
-      else
-        params.require(:booking).permit(:no_of_seats, :seat_price, :flight_id)
-      end
+      params.require(:booking).permit(:no_of_seats, :seat_price, :user_id, :flight_id)
     end
   end
 end

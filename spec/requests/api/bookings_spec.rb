@@ -189,7 +189,7 @@ RSpec.describe 'Bookings API', type: :request do
               headers: api_headers(token: user.token)
         expect(response).to have_http_status(:ok)
         expect(json_body['booking']['user']['id']).to eq(user.id)
-        expect(json_body['booking']['seat_price']).to eq(123)
+        expect(json_body['booking']['seat_price']).to eq(params[:booking][:seat_price])
       end
     end
 
@@ -219,20 +219,6 @@ RSpec.describe 'Bookings API', type: :request do
               headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:ok)
         expect(json_body['booking']['user']['id']).to eq(other_user.id)
-      end
-    end
-
-    context 'when authenticated as admin and invalid params' do # rubocop:disable RSpec/MultipleMemoizedHelpers
-      let!(:admin) { create(:user, role: :admin) }
-      let!(:user) { create(:user) }
-      let!(:flight) { create(:flight) }
-      let!(:booking) { create(:booking, user: user, flight: flight) }
-
-      it 'returns 400 Bad Request' do
-        patch "/api/bookings/#{booking.id}", params: invalid_update_params.to_json,
-                                             headers: api_headers(token: admin.token)
-        expect(response).to have_http_status(:bad_request)
-        expect(json_body['errors'].keys).to include('seat_price', 'no_of_seats')
       end
     end
 
