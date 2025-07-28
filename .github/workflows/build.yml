@@ -1,9 +1,6 @@
 name: build
 
 on:
-  push:
-    branches:
-      - feature/hw7
   pull_request:
     branches:
       - main

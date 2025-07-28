@@ -47,7 +47,11 @@ module Api
     end
 
     def flight_params
-      params.require(:flight).permit(:name, :no_of_seats, :base_price, :departs_at, :arrives_at,
+      params.require(:flight).permit(:name,
+                                     :no_of_seats,
+                                     :base_price,
+                                     :departs_at,
+                                     :arrives_at,
                                      :company_id)
     end
   end
