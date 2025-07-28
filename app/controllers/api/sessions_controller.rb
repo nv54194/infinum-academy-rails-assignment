@@ -8,17 +8,13 @@ module Api
         render json: SessionSerializer.render({ token: user.token, user: user }, root: :session),
                status: :created
       else
-        render json: { errors: { credentials: ['are invalid'] } }, status: :unauthorized
+        render_bad_request(credentials: ['are invalid'])
       end
     end
 
     def destroy
-      if current_user
-        current_user.regenerate_token
-        head :no_content
-      else
-        render json: { errors: { token: ['is invalid'] } }, status: :unauthorized
-      end
+      current_user.regenerate_token
+      head :no_content
     end
 
     private

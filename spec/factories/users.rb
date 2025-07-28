@@ -19,5 +19,6 @@ FactoryBot.define do
     sequence(:email) { |n| "test#{n}@example.com" }
     password { 'password' }
     role { nil }
+    # token { 'abc-123' }
   end
 end

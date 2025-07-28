@@ -34,10 +34,10 @@ RSpec.describe 'Sessions API', type: :request do
         }
       end
 
-      it 'returns 401 Unauthorized and error' do
+      it 'returns 400 Bad Request and error' do
         post '/api/session', params: params.to_json, headers: api_headers
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('credentials')
       end
     end
@@ -52,10 +52,10 @@ RSpec.describe 'Sessions API', type: :request do
         }
       end
 
-      it 'returns 401 Unauthorized and error' do
+      it 'returns 400 Bad Request and error' do
         post '/api/session', params: params.to_json, headers: api_headers
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('credentials')
       end
     end

@@ -14,6 +14,7 @@ module Api
     end
 
     def create
+      authenticate_user if request.headers['Authorization'].present?
       new_user = User.new(user_params)
       if new_user.save
         render json: UserSerializer.render(new_user, root: :user), status: :created
