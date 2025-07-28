@@ -6,8 +6,8 @@ module Api
       user = User.find_by(email: session_params[:email])
       if user&.authenticate(session_params[:password])
         user.regenerate_token unless test_token(user)
-        render json: SessionSerializer.render({ token: user.reload.token, user: user }, root: :session),
-               status: :created
+        render json: SessionSerializer.render({ token: user.reload.token, user: user },
+                                              root: :session), status: :created
       else
         render_bad_request(credentials: ['are invalid'])
       end
