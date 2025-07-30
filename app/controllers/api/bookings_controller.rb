@@ -3,13 +3,13 @@ module Api
     before_action :set_booking, only: [:show, :update, :destroy]
 
     def index
-      bookings = policy_scope(Booking)
-      render json: serialize(bookings, root: :bookings)
+      bookings = BookingsQuery.new(scope: policy_scope(Booking), params: params).result
+      render json: BookingSerializer.render(bookings, root: :bookings)
     end
 
     def show
       authorize booking
-      render json: serialize(booking, root: :booking)
+      render json: BookingSerializer.render(booking, root: :booking)
     end
 
     def create
