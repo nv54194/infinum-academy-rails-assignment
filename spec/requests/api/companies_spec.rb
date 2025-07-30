@@ -4,7 +4,7 @@ RSpec.describe 'Companies API', type: :request do
   describe 'GET /api/companies' do
     let!(:companies) { create_list(:company, 3) } # rubocop:disable RSpec/LetSetup
 
-    it 'returns 200 OK and correct number of records' do
+    it 'returns 200 OK and correct number of records for unauthenticated user' do
       get '/api/companies', headers: api_headers
       expect(response).to have_http_status(:ok)
       expect(json_body['companies'].size).to eq(3)
@@ -19,25 +19,38 @@ RSpec.describe 'Companies API', type: :request do
   end
 
   describe 'POST /api/companies' do
-    context 'with valid params' do
-      let(:valid_params) { { company: { name: 'Croatia Airlines' } } }
+    let(:valid_params) { { company: { name: 'Croatia Airlines' } } }
+    let(:invalid_params) { { company: { name: '' } } }
 
-      it 'returns 201 Created and correct attributes' do
-        expect do
-          post '/api/companies', params: valid_params.to_json, headers: api_headers
-        end.to change(Company, :count).by(1)
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      post '/api/companies', params: valid_params.to_json, headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
 
-        expect(response).to have_http_status(:created)
-        expect(json_body['company']).to include('name' => valid_params[:company][:name])
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
+
+      it 'returns 403 Forbidden' do
+        post '/api/companies', params: valid_params.to_json, headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
-    context 'with invalid params' do
-      let(:invalid_params) { { company: { name: '' } } }
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
 
-      it 'returns 400 Bad Request and error keys' do
-        post '/api/companies', params: invalid_params.to_json, headers: api_headers
+      it 'returns 201 Created and correct attributes with valid params' do
+        expect do
+          post '/api/companies', params: valid_params.to_json,
+                                 headers: api_headers(token: admin.token)
+        end.to change(Company, :count).by(1)
+        expect(response).to have_http_status(:created)
+        expect(json_body['company']).to include('name' => valid_params[:company][:name])
+      end
 
+      it 'returns 400 Bad Request and error keys with invalid params' do
+        post '/api/companies', params: invalid_params.to_json,
+                               headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name')
       end
@@ -47,7 +60,7 @@ RSpec.describe 'Companies API', type: :request do
   describe 'GET /api/companies/:id' do
     let!(:company) { create(:company, name: 'Croatia Airlines') }
 
-    it 'returns 200 OK and correct attributes' do
+    it 'returns 200 OK and correct attributes for unauthenticated user' do
       get "/api/companies/#{company.id}", headers: api_headers
       expect(response).to have_http_status(:ok)
       expect(json_body['company']).to include('name' => company.name)
@@ -63,26 +76,38 @@ RSpec.describe 'Companies API', type: :request do
 
   describe 'PATCH /api/companies/:id' do
     let!(:company) { create(:company, name: 'Old Name') }
+    let(:update_params) { { company: { name: 'Updated Name' } } }
+    let(:invalid_update_params) { { company: { name: '' } } }
 
-    context 'with valid params' do
-      let(:update_params) { { company: { name: 'Updated Name' } } }
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      patch "/api/companies/#{company.id}", params: update_params.to_json, headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
 
-      it 'returns 200 OK and persists changes' do
-        patch "/api/companies/#{company.id}", params: update_params.to_json, headers: api_headers
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
 
+      it 'returns 403 Forbidden' do
+        patch "/api/companies/#{company.id}", params: update_params.to_json,
+                                              headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
+
+      it 'returns 200 OK and persists changes with valid params' do
+        patch "/api/companies/#{company.id}", params: update_params.to_json,
+                                              headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:ok)
         expect(json_body['company']).to include('name' => update_params[:company][:name])
         expect(company.reload.name).to eq(update_params[:company][:name])
       end
-    end
 
-    context 'with invalid params' do
-      let(:invalid_update_params) { { company: { name: '' } } }
-
-      it 'returns 400 Bad Request and error keys' do
+      it 'returns 400 Bad Request and error keys with invalid params' do
         patch "/api/companies/#{company.id}", params: invalid_update_params.to_json,
-                                              headers: api_headers
-
+                                              headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name')
       end
@@ -92,12 +117,29 @@ RSpec.describe 'Companies API', type: :request do
   describe 'DELETE /api/companies/:id' do
     let!(:company) { create(:company) }
 
-    it 'returns 204 No Content and removes the company' do
-      expect do
-        delete "/api/companies/#{company.id}", headers: api_headers
-      end.to change(Company, :count).by(-1)
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      delete "/api/companies/#{company.id}", headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
 
-      expect(response).to have_http_status(:no_content)
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
+
+      it 'returns 403 Forbidden' do
+        delete "/api/companies/#{company.id}", headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
+
+      it 'returns 204 No Content and removes the company' do
+        expect do
+          delete "/api/companies/#{company.id}", headers: api_headers(token: admin.token)
+        end.to change(Company, :count).by(-1)
+        expect(response).to have_http_status(:no_content)
+      end
     end
   end
 end

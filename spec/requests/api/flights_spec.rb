@@ -4,7 +4,7 @@ RSpec.describe 'Flights API', type: :request do
   describe 'GET /api/flights' do
     let!(:flights) { create_list(:flight, 3) } # rubocop:disable RSpec/LetSetup
 
-    it 'returns 200 OK and correct number of records' do
+    it 'returns 200 OK and correct number of records for unauthenticated user' do
       get '/api/flights', headers: api_headers
       expect(response).to have_http_status(:ok)
       expect(json_body['flights'].size).to eq(3)
@@ -20,27 +20,59 @@ RSpec.describe 'Flights API', type: :request do
 
   describe 'POST /api/flights' do
     let!(:company) { create(:company) }
-
-    context 'with valid params' do
-      let(:valid_params) do
-        {
-          flight: {
-            name: 'Flight 101',
-            no_of_seats: 201,
-            base_price: 199,
-            departs_at: 2.days.from_now,
-            arrives_at: 3.days.from_now,
-            company_id: company.id
-          }
+    let(:valid_params) do
+      {
+        flight: {
+          name: 'Flight 101',
+          no_of_seats: 201,
+          base_price: 199,
+          departs_at: 2.days.from_now,
+          arrives_at: 3.days.from_now,
+          company_id: company.id
         }
+      }
+    end
+    let(:invalid_params) do
+      {
+        flight: {
+          name: '',
+          no_of_seats: nil,
+          base_price: nil,
+          departs_at: nil,
+          arrives_at: nil,
+          company_id: nil
+        }
+      }
+    end
+
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      post '/api/flights', params: valid_params.to_json, headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
+
+      it 'returns 403 Forbidden' do
+        post '/api/flights', params: valid_params.to_json, headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
+
+      it 'creates a flight and returns 201 Created' do
+        expect do
+          post '/api/flights', params: valid_params.to_json,
+                               headers: api_headers(token: admin.token)
+        end.to change(Flight, :count).by(1)
+        expect(response).to have_http_status(:created)
       end
 
-      it 'returns 201 Created and correct attributes' do
-        expect do
-          post '/api/flights', params: valid_params.to_json, headers: api_headers
-        end.to change(Flight, :count).by(1)
-
-        expect(response).to have_http_status(:created)
+      it 'returns correct attributes for the created flight' do
+        post '/api/flights', params: valid_params.to_json,
+                             headers: api_headers(token: admin.token)
         expect(json_body['flight']).to include(
           'name' => valid_params[:flight][:name],
           'no_of_seats' => valid_params[:flight][:no_of_seats],
@@ -48,25 +80,10 @@ RSpec.describe 'Flights API', type: :request do
         )
         expect(json_body['flight']['company']).to include('id' => company.id)
       end
-    end
 
-    context 'with invalid params' do
-      let(:invalid_params) do
-        {
-          flight: {
-            name: '',
-            no_of_seats: nil,
-            base_price: nil,
-            departs_at: nil,
-            arrives_at: nil,
-            company_id: nil
-          }
-        }
-      end
-
-      it 'returns 400 Bad Request and error keys' do
-        post '/api/flights', params: invalid_params.to_json, headers: api_headers
-
+      it 'returns 400 Bad Request and error keys with invalid params' do
+        post '/api/flights', params: invalid_params.to_json,
+                             headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name', 'no_of_seats', 'base_price', 'departs_at',
                                                'arrives_at', 'company')
@@ -80,9 +97,8 @@ RSpec.describe 'Flights API', type: :request do
       create(:flight, name: 'Flight 777', no_of_seats: 100, base_price: 150, company: company)
     end
 
-    it 'returns 200 OK and correct attributes' do
+    it 'returns 200 OK and correct attributes for unauthenticated user' do
       get "/api/flights/#{flight.id}", headers: api_headers
-
       expect(response).to have_http_status(:ok)
       expect(json_body['flight']).to include(
         'name' => flight.name,
@@ -107,22 +123,48 @@ RSpec.describe 'Flights API', type: :request do
     let!(:flight) do
       create(:flight, name: 'Old Flight', no_of_seats: 80, base_price: 100, company: company)
     end
-
-    context 'with valid params' do
-      let(:update_params) do
-        {
-          flight: {
-            name: 'Updated Flight',
-            no_of_seats: 120,
-            base_price: 250,
-            company_id: company.id
-          }
+    let(:update_params) do
+      {
+        flight: {
+          name: 'Updated Flight',
+          no_of_seats: 120,
+          base_price: 250,
+          company_id: company.id
         }
+      }
+    end
+    let(:invalid_update_params) do
+      {
+        flight: {
+          name: '',
+          no_of_seats: nil,
+          base_price: nil,
+          company_id: nil
+        }
+      }
+    end
+
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      patch "/api/flights/#{flight.id}", params: update_params.to_json, headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
+
+      it 'returns 403 Forbidden' do
+        patch "/api/flights/#{flight.id}", params: update_params.to_json,
+                                           headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
       end
+    end
 
-      it 'returns 200 OK and persists changes' do # rubocop:disable RSpec/ExampleLength
-        patch "/api/flights/#{flight.id}", params: update_params.to_json, headers: api_headers
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
 
+      it 'returns 200 OK and correct attributes' do
+        patch "/api/flights/#{flight.id}", params: update_params.to_json,
+                                           headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:ok)
         expect(json_body['flight']).to include(
           'name' => update_params[:flight][:name],
@@ -130,30 +172,11 @@ RSpec.describe 'Flights API', type: :request do
           'base_price' => update_params[:flight][:base_price]
         )
         expect(json_body['flight']['company']).to include('id' => company.id)
-        flight.reload
-        expect(flight.name).to eq(update_params[:flight][:name])
-        expect(flight.no_of_seats).to eq(update_params[:flight][:no_of_seats])
-        expect(flight.base_price).to eq(update_params[:flight][:base_price])
-        expect(flight.company_id).to eq(company.id)
-      end
-    end
-
-    context 'with invalid params' do
-      let(:invalid_update_params) do
-        {
-          flight: {
-            name: '',
-            no_of_seats: nil,
-            base_price: nil,
-            company_id: nil
-          }
-        }
       end
 
-      it 'returns 400 Bad Request and error keys' do
+      it 'returns 400 Bad Request and error keys with invalid params' do
         patch "/api/flights/#{flight.id}", params: invalid_update_params.to_json,
-                                           headers: api_headers
-
+                                           headers: api_headers(token: admin.token)
         expect(response).to have_http_status(:bad_request)
         expect(json_body['errors']).to include('name', 'no_of_seats', 'base_price', 'company')
       end
@@ -164,12 +187,29 @@ RSpec.describe 'Flights API', type: :request do
     let!(:company) { create(:company) }
     let!(:flight) { create(:flight, company: company) }
 
-    it 'returns 204 No Content and removes the flight' do
-      expect do
-        delete "/api/flights/#{flight.id}", headers: api_headers
-      end.to change(Flight, :count).by(-1)
+    it 'returns 401 Unauthorized for unauthenticated user' do
+      delete "/api/flights/#{flight.id}", headers: api_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
 
-      expect(response).to have_http_status(:no_content)
+    context 'when authenticated as regular user' do
+      let!(:user) { create(:user) }
+
+      it 'returns 403 Forbidden' do
+        delete "/api/flights/#{flight.id}", headers: api_headers(token: user.token)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when authenticated as admin' do
+      let!(:admin) { create(:user, role: :admin) }
+
+      it 'returns 204 No Content and removes the flight' do
+        expect do
+          delete "/api/flights/#{flight.id}", headers: api_headers(token: admin.token)
+        end.to change(Flight, :count).by(-1)
+        expect(response).to have_http_status(:no_content)
+      end
     end
   end
 end

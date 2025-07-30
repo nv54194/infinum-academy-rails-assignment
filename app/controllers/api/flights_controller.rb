@@ -1,18 +1,18 @@
 module Api
   class FlightsController < ApplicationController
     before_action :set_flight, only: [:show, :update, :destroy]
+    skip_before_action :authenticate_user, only: [:index, :show]
 
     def index
-      # render json: FlightSerializer.render(Flight.all, root: :flights), status: :ok
       render json: serialize(Flight.all, root: :flights)
     end
 
     def show
-      # render json: FlightSerializer.render(flight, root: :flight), status: :ok
       render json: serialize(flight, root: :flight)
     end
 
     def create
+      authorize Flight
       new_flight = Flight.new(flight_params)
       if new_flight.save
         render json: FlightSerializer.render(new_flight, root: :flight), status: :created
@@ -22,6 +22,7 @@ module Api
     end
 
     def update
+      authorize flight
       if flight.update(flight_params)
         render json: FlightSerializer.render(flight, root: :flight), status: :ok
       else
@@ -30,6 +31,7 @@ module Api
     end
 
     def destroy
+      authorize flight
       flight.destroy
       head :no_content
     end
@@ -45,7 +47,11 @@ module Api
     end
 
     def flight_params
-      params.require(:flight).permit(:name, :no_of_seats, :base_price, :departs_at, :arrives_at,
+      params.require(:flight).permit(:name,
+                                     :no_of_seats,
+                                     :base_price,
+                                     :departs_at,
+                                     :arrives_at,
                                      :company_id)
     end
   end

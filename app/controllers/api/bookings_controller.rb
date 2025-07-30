@@ -3,17 +3,18 @@ module Api
     before_action :set_booking, only: [:show, :update, :destroy]
 
     def index
-      # render json: BookingSerializer.render(Booking.all, root: :bookings), status: :ok
-      render json: serialize(Booking.all, root: :bookings)
+      bookings = policy_scope(Booking)
+      render json: serialize(bookings, root: :bookings)
     end
 
     def show
-      # render json: BookingSerializer.render(booking, root: :booking), status: :ok
+      authorize booking
       render json: serialize(booking, root: :booking)
     end
 
     def create
-      new_booking = Booking.new(booking_params)
+      new_booking = build_booking
+      authorize new_booking
       if new_booking.save
         render json: BookingSerializer.render(new_booking, root: :booking), status: :created
       else
@@ -22,7 +23,10 @@ module Api
     end
 
     def update
-      if booking.update(booking_params)
+      authorize booking
+      permitted_params = booking_params
+      permitted_params = permitted_params.except(:user_id) unless current_user.admin?
+      if booking.update(permitted_params)
         render json: BookingSerializer.render(booking, root: :booking), status: :ok
       else
         render_bad_request(booking.errors.messages)
@@ -30,6 +34,7 @@ module Api
     end
 
     def destroy
+      authorize booking
       booking.destroy
       head :no_content
     end
@@ -42,6 +47,15 @@ module Api
 
     def booking
       @booking ||= Booking.find_by(id: params[:id])
+    end
+
+    def build_booking
+      if current_user.admin? && booking_params[:user_id]
+        user = User.find(booking_params[:user_id])
+        user.bookings.build(booking_params.except(:user_id))
+      else
+        current_user.bookings.build(booking_params)
+      end
     end
 
     def booking_params
