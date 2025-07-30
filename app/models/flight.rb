@@ -14,6 +14,9 @@
 #
 class Flight < ApplicationRecord
   belongs_to :company
+
+  scope :active, -> { where(departs_at: Time.current..) }
+
   has_many :bookings, dependent: :destroy
   has_many :users, through: :bookings
 
