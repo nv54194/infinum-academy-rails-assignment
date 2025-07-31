@@ -35,6 +35,47 @@ RSpec.describe 'Bookings API', type: :request do
         expect(json_body['bookings'].size).to eq(4)
       end
     end
+
+    it 'returns bookings sorted by [departs_at, name, created_at] ASC in index response' do # rubocop:disable RSpec/ExampleLength
+      user = create(:user)
+      flight_a = create(:flight, name: 'A', departs_at: 2.days.from_now)
+      flight_b = create(:flight, name: 'B', departs_at: 1.day.from_now)
+      flight_c = create(:flight, name: 'C', departs_at: 3.days.from_now)
+      booking_a = create(:booking, user: user, flight: flight_a, created_at: 3.days.ago)
+      booking_b = create(:booking, user: user, flight: flight_b, created_at: 2.days.ago)
+      booking_c = create(:booking, user: user, flight: flight_c, created_at: 1.day.ago)
+
+      get '/api/bookings', headers: api_headers(token: user.token)
+      bookings = json_body['bookings']
+
+      expected = [booking_a, booking_b, booking_c].sort_by do |b|
+        [b.flight.departs_at, b.flight.name, b.created_at]
+      end
+      actual = bookings.sort_by do |b|
+        [b['flight']['departs_at'], b['flight']['name'], b['created_at']]
+      end
+
+      expect(actual.map { |b| b['id'] }).to eq(expected.map(&:id))
+    end
+
+    it 'returns only bookings for active flights' do
+      user = create(:user)
+      future_flight = create(:flight, departs_at: 2.days.from_now)
+      create(:booking, user: user, flight: future_flight)
+
+      get '/api/bookings', params: { filter: 'active' }, headers: api_headers(token: user.token)
+      flight_ids = json_body['bookings'].map { |b| b['flight']['id'] }
+      expect(flight_ids).to include(future_flight.id)
+    end
+
+    it 'includes total_price for each booking' do
+      user = create(:user)
+      flight = create(:flight)
+      booking = create(:booking, user: user, flight: flight, no_of_seats: 3, seat_price: 100)
+      get '/api/bookings', headers: api_headers(token: user.token)
+      booking_json = json_body['bookings'].find { |b| b['id'] == booking.id }
+      expect(booking_json['total_price']).to eq(300)
+    end
   end
 
   describe 'POST /api/bookings' do

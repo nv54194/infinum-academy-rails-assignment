@@ -58,7 +58,8 @@ RSpec.describe Booking, type: :model do
       create(:booking, flight: flight, no_of_seats: 2)
       overbooking = build(:booking, flight: flight, no_of_seats: 1)
       expect(overbooking).not_to be_valid
-      expect(overbooking.errors[:no_of_seats]).to include('is more than available seats for this flight')
+      expect(overbooking.errors[:no_of_seats])
+        .to include('is more than available seats for this flight')
     end
 
     it 'is valid if total booked seats do not exceed flight capacity' do
