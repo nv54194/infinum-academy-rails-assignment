@@ -11,7 +11,7 @@ module Statistics
           'flights.id AS flight_id',
           'COALESCE(SUM(bookings.no_of_seats * bookings.seat_price), 0) AS revenue',
           'COALESCE(SUM(bookings.no_of_seats), 0) AS no_of_booked_seats',
-          'CAST(COALESCE(SUM(bookings.no_of_seats), 0) AS FLOAT) / flights.no_of_seats AS occupancy'
+          'COALESCE(SUM(bookings.no_of_seats), 0) * 100.0 / flights.no_of_seats AS occupancy'
         )
         .group('flights.id')
     end
