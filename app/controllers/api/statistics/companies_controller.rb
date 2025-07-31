@@ -4,8 +4,8 @@ module Api
       before_action :authorize_admin!
 
       def index
-        companies = Statistics::CompaniesQuery.new(relation: Company.all).with_stats
-        render json: Statistics::CompanySerializer.render(companies, root: :companies)
+        companies = ::Statistics::CompaniesQuery.new(relation: Company.all).with_stats
+        render json: ::Statistics::CompanySerializer.render(companies, root: :companies)
       end
 
       private
