@@ -7,7 +7,7 @@ class UsersQuery
   end
 
   def result
-    scope = relation.order(email: :asc)
+    scope = relation
     if query?
       q = params[:query]
       scope = scope.email_cont(q)
