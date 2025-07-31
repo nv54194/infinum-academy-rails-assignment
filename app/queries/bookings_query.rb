@@ -1,13 +1,13 @@
 class BookingsQuery
-  attr_reader :scope, :params
+  attr_reader :relation, :params
 
-  def initialize(scope: Booking.all, params: {})
-    @scope = scope
+  def initialize(relation: Booking.all, params: {})
+    @relation = relation
     @params = params
   end
 
   def result
-    scope = scope.joins(:flight).order(
+    scope = relation.joins(:flight).order(
       flights: { departs_at: :asc, name: :asc },
       created_at: :asc
     )

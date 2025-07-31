@@ -4,12 +4,12 @@ module Api
     skip_before_action :authenticate_user, only: [:index, :show]
 
     def index
-      companies = CompaniesQuery.new(params: company_params).result
-      render json: CompanySerializer.render(companies, root: :companies)
+      companies = CompaniesQuery.new(params: params).result
+      render json: serialize(companies, root: :companies)
     end
 
     def show
-      render json: CompanySerializer.render(company, root: :company) if company
+      render json: serialize(company, root: :company)
     end
 
     def create
@@ -48,7 +48,7 @@ module Api
     end
 
     def company_params
-      params.require(:company).permit(:name, :filter)
+      params.require(:company).permit(:name)
     end
   end
 end

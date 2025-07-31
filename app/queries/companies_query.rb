@@ -1,4 +1,4 @@
-class Companiesscope
+class CompaniesQuery
   attr_reader :relation, :params
 
   def initialize(relation: Company.all, params: {})
@@ -14,7 +14,7 @@ class Companiesscope
 
   def with_active_flights(scope = relation)
     scope.joins(:flights)
-         .where(flights: { departs_at: Time.current.. })
+         .merge(Flight.active)
          .distinct
   end
 

@@ -17,6 +17,26 @@ class Flight < ApplicationRecord
 
   scope :active, -> { where(departs_at: Time.current..) }
 
+  scope :name_cont, lambda { |name|
+    where 'LOWER(name) LIKE ?',
+          "%#{sanitize_sql_like(name.downcase)}"
+  }
+
+  scope :departs_at_eq, ->(date) { where('DATE(departs_at) = ?', date) }
+
+  scope :no_of_available_seats_gteq, lambda { |min_seats|
+    left_joins(:bookings)
+      .group('flights.id')
+      .having('flights.no_of_seats - COALESCE(SUM(bookings.no_of_seats), 0) >= ?', min_seats)
+  }
+
+  scope :overlapping, lambda { |flight|
+    where(company_id: flight.company_id)
+      .where.not(id: flight.id)
+      .where('departs_at < ? AND arrives_at > ?',
+             flight.arrives_at, flight.departs_at)
+  }
+
   has_many :bookings, dependent: :destroy
   has_many :users, through: :bookings
 
@@ -42,5 +62,14 @@ class Flight < ApplicationRecord
     return unless departs_at.present? && arrives_at.present? && departs_at >= arrives_at
 
     errors.add(:departs_at, 'should be before arrives_at')
+  end
+
+  def no_overlapping_flights
+    return unless company_id.present? && departs_at.present? && arrives_at.present?
+
+    return unless Flight.overlapping(self).exists?
+
+    errors.add(:arrives_at, 'overlaps with another flight from this company')
+    errors.add(:departs_at, 'overlaps with another flight from this company')
   end
 end
