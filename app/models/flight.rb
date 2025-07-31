@@ -14,6 +14,8 @@
 #
 class Flight < ApplicationRecord
   belongs_to :company
+  has_many :bookings, dependent: :destroy
+  has_many :users, through: :bookings
 
   scope :active, -> { where(departs_at: Time.current..) }
 
@@ -36,9 +38,6 @@ class Flight < ApplicationRecord
       .where('departs_at < ? AND arrives_at > ?',
              flight.arrives_at, flight.departs_at)
   }
-
-  has_many :bookings, dependent: :destroy
-  has_many :users, through: :bookings
 
   validates :name,
             presence: true,

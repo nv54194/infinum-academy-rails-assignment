@@ -5,7 +5,8 @@ module Api
 
     def index
       authorize User
-      render json: serialize(User.all, root: :users)
+      users = UsersQuery.new(params: params).result
+      render json: serialize(users, root: :users)
     end
 
     def show

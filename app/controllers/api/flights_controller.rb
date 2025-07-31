@@ -3,10 +3,10 @@ module Api
     before_action :set_flight, only: [:show, :update, :destroy]
     skip_before_action :authenticate_user, only: [:index, :show]
 
-def index
-  flights = FlightsQuery.new(params: params).result
-  render json: FlightSerializer.render(flights, root: :flights)
-end
+    def index
+      flights = FlightsQuery.new(params: params).result
+      render json: serialize(flights, root: :flights)
+    end
 
     def show
       render json: serialize(flight, root: :flight)
