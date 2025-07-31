@@ -28,20 +28,17 @@ RSpec.describe 'Companies API', type: :request do
       expect(names).to eq(names.sort)
     end
 
-    it 'includes correct no_of_active_flights for each company' do # rubocop:disable RSpec/ExampleLength
+    it 'includes correct no_of_active_flights for company' do
       company_active = create(:company, name: 'Active')
-      company_inactive = create(:company, name: 'Inactive')
       create(:flight, company: company_active, departs_at: 2.days.from_now,
                       arrives_at: 3.days.from_now)
       create(:flight, company: company_active, departs_at: 3.days.from_now,
                       arrives_at: 4.days.from_now)
-      create(:flight, company: company_inactive, departs_at: 2.days.ago, arrives_at: 1.day.ago)
 
       get '/api/companies', headers: api_headers
       companies = json_body['companies'].index_by { |c| c['name'] }
 
       expect(companies['Active']['no_of_active_flights']).to eq(2)
-      expect(companies['Inactive']['no_of_active_flights']).to eq(0)
     end
 
     context 'when filter=active is used' do

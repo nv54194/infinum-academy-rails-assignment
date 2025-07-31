@@ -51,11 +51,8 @@ RSpec.describe 'Bookings API', type: :request do
       expected = [booking_a, booking_b, booking_c].sort_by do |b|
         [b.flight.departs_at, b.flight.name, b.created_at]
       end
-      actual = bookings.sort_by do |b|
-        [b['flight']['departs_at'], b['flight']['name'], b['created_at']]
-      end
 
-      expect(actual.map { |b| b['id'] }).to eq(expected.map(&:id))
+      expect(bookings.map { |b| b['id'] }).to eq(expected.map(&:id))
     end
 
     it 'returns only bookings for active flights' do

@@ -35,6 +35,34 @@ RSpec.describe 'Users API', type: :request do
         expect(json_body.size).to eq(4)
       end
     end
+
+    describe 'advanced features' do
+      let!(:admin) do
+        create(:user, role: :admin, first_name: 'Admin', last_name: 'Root',
+                      email: 'admin@example.com')
+      end
+
+      it 'returns users sorted by email ASC' do
+        create(:user, email: 'b@example.com')
+        create(:user, email: 'a@example.com')
+        create(:user, email: 'c@example.com')
+        get '/api/users', headers: api_headers(token: admin.token)
+        emails = json_body['users'].map { |u| u['email'] }
+        expect(emails).to eq(emails.sort)
+      end
+
+      it 'filters by query (case insensitive, matches first_name, last_name, or email)' do
+        user1 = create(:user, first_name: 'TestA', last_name: 'Alpha', email: 'testa@example.com')
+        user2 = create(:user, first_name: 'TestB', last_name: 'Beta', email: 'testb@example.com')
+        user3 = create(:user, first_name: 'TestC', last_name: 'Gamma', email: 'testc@example.com')
+        user4 = create(:user, first_name: 'TestD', last_name: 'Delta', email: 'testd@example.com')
+
+        get '/api/users', params: { query: 'test' }, headers: api_headers(token: admin.token)
+        result_ids = json_body['users'].map { |u| u['id'] }
+        expect(result_ids).to include(user1.id, user2.id, user3.id, user4.id)
+        expect(result_ids).not_to include(admin.id)
+      end
+    end
   end
 
   describe 'POST /api/users' do
