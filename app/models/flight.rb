@@ -21,7 +21,7 @@ class Flight < ApplicationRecord
 
   scope :name_cont, lambda { |name|
     where 'LOWER(name) LIKE ?',
-          "%#{sanitize_sql_like(name.downcase)}"
+          "%#{sanitize_sql_like(name.downcase)}%"
   }
 
   scope :departs_at_eq, ->(date) { where('DATE(departs_at) = ?', date) }
