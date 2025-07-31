@@ -32,14 +32,7 @@ class FlightSerializer < Blueprinter::Base
   end
 
   field :current_price do |flight, _|
-    diff = (flight.departs_at.to_date - Date.current).to_i.clamp(0, 15)
-
-    price = if diff >= 15
-              flight.base_price
-            else
-              flight.base_price + (flight.base_price * (15 - diff) / 15.0)
-            end
-    price.round
+    flight.current_price
   end
 
   association :company, blueprint: CompanySerializer

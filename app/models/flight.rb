@@ -57,6 +57,16 @@ class Flight < ApplicationRecord
 
   validate :no_overlapping_flights
 
+  def current_price
+    diff = (departs_at.to_date - Date.current).to_i.clamp(0, 15)
+    price = if diff >= 15
+              base_price
+            else
+              base_price + (base_price * (15 - diff) / 15.0)
+            end
+    price.round
+  end
+
   private
 
   def departs_before_arrives
