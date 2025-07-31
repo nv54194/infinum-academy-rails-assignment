@@ -39,7 +39,7 @@ RSpec.describe 'Users API', type: :request do
     describe 'advanced features' do
       let!(:admin) do
         create(:user, role: :admin, first_name: 'Admin', last_name: 'Root',
-                      email: 'admin@example.com')
+                      email: 'zadmin@example.com')
       end
 
       it 'returns users sorted by email ASC' do
