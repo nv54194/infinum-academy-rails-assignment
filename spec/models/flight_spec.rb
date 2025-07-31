@@ -67,4 +67,54 @@ RSpec.describe Flight, type: :model do
       end
     end
   end
+
+  describe 'validation of overlapping flights for same company' do
+    let(:company) { create(:company) }
+
+    context 'when another flight overlaps in time' do
+      let!(:existing) do # rubocop:disable RSpec/LetSetup
+        create(:flight, company: company, departs_at: 1.day.from_now, arrives_at: 2.days.from_now)
+      end
+      let(:overlapping) do
+        build(:flight, company: company, departs_at: 1.5.days.from_now,
+                       arrives_at: 2.5.days.from_now)
+      end
+
+      it 'is not valid' do
+        expect(overlapping).not_to be_valid
+        expect(overlapping.errors[:departs_at])
+          .to include('overlaps with another flight from this company')
+        expect(overlapping.errors[:arrives_at])
+          .to include('overlaps with another flight from this company')
+      end
+    end
+
+    context 'when another flight does not overlap in time' do
+      let!(:existing) do # rubocop:disable RSpec/LetSetup
+        create(:flight, company: company, departs_at: 1.day.from_now, arrives_at: 2.days.from_now)
+      end
+      let(:non_overlapping) do
+        build(:flight, company: company, departs_at: 3.days.from_now, arrives_at: 4.days.from_now)
+      end
+
+      it 'is valid' do
+        expect(non_overlapping).to be_valid
+      end
+    end
+
+    context 'when flights belong to different companies' do
+      let(:other_company) { create(:company) }
+      let!(:existing) do # rubocop:disable RSpec/LetSetup
+        create(:flight, company: company, departs_at: 1.day.from_now, arrives_at: 2.days.from_now)
+      end
+      let(:other_company_flight) do
+        build(:flight, company: other_company, departs_at: 1.5.days.from_now,
+                       arrives_at: 2.5.days.from_now)
+      end
+
+      it 'is valid' do
+        expect(other_company_flight).to be_valid
+      end
+    end
+  end
 end
