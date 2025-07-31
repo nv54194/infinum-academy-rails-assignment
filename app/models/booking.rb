@@ -23,7 +23,7 @@ class Booking < ApplicationRecord
             numericality: { only_integer: true, greater_than: 0 }
 
   validate :flight_not_in_past
-  validate
+  validate :not_overbooked
 
   private
 

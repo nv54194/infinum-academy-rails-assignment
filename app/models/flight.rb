@@ -55,6 +55,8 @@ class Flight < ApplicationRecord
             presence: true,
             numericality: { only_integer: true, greater_than: 0 }
 
+  validates :no_overlapping_flights
+
   private
 
   def departs_before_arrives
