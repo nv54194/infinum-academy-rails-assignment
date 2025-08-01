@@ -4,7 +4,8 @@ module Api
     skip_before_action :authenticate_user, only: [:index, :show]
 
     def index
-      render json: serialize(Flight.all, root: :flights)
+      flights = FlightsQuery.new(params: params).result.includes(:company)
+      render json: serialize(flights, root: :flights)
     end
 
     def show

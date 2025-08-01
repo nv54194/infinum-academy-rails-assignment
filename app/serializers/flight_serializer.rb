@@ -23,5 +23,17 @@ class FlightSerializer < Blueprinter::Base
          :created_at,
          :updated_at
 
+  field :no_of_booked_seats do |flight, _|
+    flight.bookings.sum(:no_of_seats)
+  end
+
+  field :company_name do |flight, _|
+    flight.company&.name
+  end
+
+  field :current_price do |flight, _|
+    flight.current_price
+  end
+
   association :company, blueprint: CompanySerializer
 end

@@ -16,6 +16,74 @@ RSpec.describe 'Flights API', type: :request do
       expect(json_body).to be_an(Array)
       expect(json_body.size).to eq(3)
     end
+
+    describe 'advanced features' do
+      it 'returns only active flights in index' do # rubocop:disable RSpec/ExampleLength
+        company = create(:company)
+        other_company = create(:company)
+        active_flight = create(:flight, company: company, departs_at: 2.days.from_now,
+                                        arrives_at: 3.days.from_now, created_at: 1.day.ago)
+        inactive_flight = create(:flight, company: company, departs_at: 2.days.ago,
+                                          arrives_at: 1.day.ago, created_at: 3.days.ago)
+        other_flight = create(:flight, company: other_company, departs_at: 5.days.from_now,
+                                       arrives_at: 6.days.from_now, created_at: 2.days.ago)
+
+        get '/api/flights', headers: api_headers
+        ids = json_body['flights'].map { |f| f['id'] }
+        expect(ids).to include(active_flight.id, other_flight.id)
+        expect(ids).not_to include(inactive_flight.id)
+      end
+
+      it 'returns flights sorted by departs_at, name, created_at ASC' do
+        company = create(:company)
+        create(:flight, company: company, departs_at: 2.days.from_now, arrives_at: 3.days.from_now,
+                        name: 'A', created_at: 1.day.ago)
+        create(:flight, company: company, departs_at: 5.days.from_now, arrives_at: 6.days.from_now,
+                        name: 'B', created_at: 2.days.ago)
+        get '/api/flights', headers: api_headers
+        flights = json_body['flights']
+        sorted = flights.sort_by { |f| [f['departs_at'], f['name'], f['created_at']] }
+        expect(flights.map { |f| f['id'] }).to eq(sorted.map { |f| f['id'] })
+      end
+
+      it 'filters by name (contains, case insensitive)' do
+        company = create(:company)
+        create(:flight, name: 'A', company: company, departs_at: 1.day.from_now,
+                        arrives_at: 2.days.from_now)
+        create(:flight, name: 'B', company: company, departs_at: 3.days.from_now,
+                        arrives_at: 4.days.from_now)
+        create(:flight, name: 'C', company: company, departs_at: 5.days.from_now,
+                        arrives_at: 6.days.from_now)
+
+        get '/api/flights', params: { name_cont: 'a' }, headers: api_headers
+        names = json_body['flights'].map { |f| f['name'].downcase }
+        expect(names.all? { |n| n.include?('a') }).to be true
+      end
+
+      it 'filters by departs_at' do
+        company = create(:company)
+        flight = create(:flight, company: company, departs_at: 2.days.from_now.change(sec: 0))
+        create(:flight, company: company, departs_at: 3.days.from_now)
+
+        date = flight.departs_at
+        get '/api/flights', params: { departs_at_eq: date }, headers: api_headers
+        ids = json_body['flights'].map { |f| f['id'] }
+        expect(ids).to include(flight.id)
+      end
+
+      it 'filters by number of available seats (>=)' do
+        company = create(:company)
+        flight = create(:flight, company: company, no_of_seats: 10, departs_at: 1.day.from_now,
+                                 arrives_at: 2.days.from_now)
+        create_list(:booking, 5, flight: flight)
+        create(:flight, company: company, no_of_seats: 3, departs_at: 3.days.from_now,
+                        arrives_at: 4.days.from_now)
+
+        get '/api/flights', params: { no_of_available_seats_gteq: 5 }, headers: api_headers
+        ids = json_body['flights'].map { |f| f['id'] }
+        expect(ids).to include(flight.id)
+      end
+    end
   end
 
   describe 'POST /api/flights' do

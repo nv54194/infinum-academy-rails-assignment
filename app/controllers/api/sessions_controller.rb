@@ -26,7 +26,7 @@ module Api
 
     def test_token(user)
       return false unless Rails.env.test?
-      return false unless user.email == 'harry.hole@oslo.pd' && user.id == 146
+      return false unless user.email == 'harry.hole@oslo.pd' && user.id == 225
 
       user.update(token: 'abc-123')
       true

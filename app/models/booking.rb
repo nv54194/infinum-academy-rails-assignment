@@ -23,6 +23,7 @@ class Booking < ApplicationRecord
             numericality: { only_integer: true, greater_than: 0 }
 
   validate :flight_not_in_past
+  validate :not_overbooked
 
   private
 
@@ -30,5 +31,15 @@ class Booking < ApplicationRecord
     return unless flight&.departs_at.present? && flight.departs_at < DateTime.current
 
     errors.add(:flight, 'should not be in the past')
+  end
+
+  def not_overbooked
+    return unless flight
+
+    existing_bookings = flight.bookings.where.not(id: id)
+    total_seats = existing_bookings.sum(:no_of_seats) + no_of_seats.to_i
+    return unless total_seats > flight.no_of_seats
+
+    errors.add(:no_of_seats, 'is more than available seats for this flight')
   end
 end

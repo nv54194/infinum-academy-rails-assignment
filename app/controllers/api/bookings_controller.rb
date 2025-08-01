@@ -3,7 +3,8 @@ module Api
     before_action :set_booking, only: [:show, :update, :destroy]
 
     def index
-      bookings = policy_scope(Booking)
+      bookings = BookingsQuery.new(relation: policy_scope(Booking), params: params).result
+                              .includes(:user, flight: :company)
       render json: serialize(bookings, root: :bookings)
     end
 

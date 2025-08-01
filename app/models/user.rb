@@ -19,6 +19,18 @@ class User < ApplicationRecord
   has_many :bookings, dependent: :destroy
   has_many :flights, through: :bookings
 
+  scope :email_cont, lambda { |value|
+    where('LOWER(email) LIKE ?', "%#{sanitize_sql_like(value.to_s.downcase)}%")
+  }
+
+  scope :first_name_cont, lambda { |value|
+    where('LOWER(first_name) LIKE ?', "%#{sanitize_sql_like(value.to_s.downcase)}%")
+  }
+
+  scope :last_name_cont, lambda { |value|
+    where('LOWER(last_name) LIKE ?', "%#{sanitize_sql_like(value.to_s.downcase)}%")
+  }
+
   validates :email,
             presence: true,
             uniqueness: { case_sensitive: false },

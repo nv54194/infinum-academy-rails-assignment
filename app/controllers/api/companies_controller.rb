@@ -4,7 +4,8 @@ module Api
     skip_before_action :authenticate_user, only: [:index, :show]
 
     def index
-      render json: serialize(Company.all, root: :companies)
+      companies = CompaniesQuery.new(params: params).result
+      render json: serialize(companies, root: :companies)
     end
 
     def show
