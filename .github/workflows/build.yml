@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - id: files
         uses: jitterbit/get-changed-files@v1
       - uses: ruby/setup-ruby@v1
@@ -44,7 +44,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1
         with:
           bundler: 2.2.16
@@ -78,13 +78,13 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
 
       - name: Checkout lecturer specs
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: infinum-academy/rails-lecturer-specs
           token: ${{ secrets.INFINUM_MACHINES_GH_PAT }}
